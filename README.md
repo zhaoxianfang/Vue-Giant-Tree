@@ -116,8 +116,211 @@ npm i
 npm run serve 
 ```
 
+## 完整demo
+```
+<template>
+  <div>
+    <div style="padding:30px 50px;">
+        <div style="height:50px;"></div>
+        <a-row>
+            <a-col :span="8">
+                  <tree :nodes="treeNodes"
+                      :setting="setting"
+                      @onClick="onClick"
+                      @onCheck="onCheck"
+                      @onCreated="handleCreated"
+                   />
+            </a-col>
+            <a-col :span="16">
+
+                
+            </a-col>
+        </a-row>
+
+    </div>
+
+
+  </div>
+</template>
+<script>
+
+import reqwest from 'reqwest';
+import tree from "vue-giant-tree";
+export default {
+  name: 'home',
+  components: {
+    tree
+  },
+  mounted() {
+    // this.fetch();
+  },
+  data() {
+    return {
+      newCount:1,
+      treeNodes: [
+        { id:1, pid:0, name:"随意勾选 1", open:true},
+        { id:11, pid:1, name:"随意勾选 1-1", open:true},
+        { id:111, pid:11, name:"随意勾选 1-1-1"},
+        { id:112, pid:11, name:"随意勾选 1-1-2"},
+        { id:12, pid:1, name:"随意勾选 1-2", open:true},
+        { id:121, pid:12, name:"随意勾选 1-2-1"},
+        { id:122, pid:12, name:"随意勾选 1-2-2"},
+        { id:2, pid:0, name:"随意勾选 2", checked:true, open:true},
+        { id:21, pid:2, name:"随意勾选 2-1"},
+        { id:22, pid:2, name:"随意勾选 2-2", open:true},
+        { id:221, pid:22, name:"随意勾选 2-2-1", checked:true},
+        { id:222, pid:22, name:"随意勾选 2-2-2"},
+        { id:23, pid:2, name:"随意勾选 2-3"}
+     ],
+     setting: {
+        check: {
+          enable: true
+        },
+        data: {
+          simpleData: {
+            enable: true,
+            pIdKey: "pid"
+          }
+        },
+        view: {
+          showIcon: false,
+          addHoverDom: this.addHoverDom,
+          removeHoverDom: this.removeHoverDom,
+        },
+        edit: {
+            enable: true
+        },
+        callback:{
+          beforeRemove: this.zTreeBeforeRemove,
+          beforeRename: this.zTreeBeforeRename
+        }
+      },
+    };
+  },
+   methods: {
+
+    zTreeBeforeRemove(treeId, treeNode) {
+      console.log('删除前拦截',treeId, treeNode)
+      return false;
+    },
+    zTreeBeforeRename(treeId, treeNode, newName, isCancel) {
+      console.log('编辑前拦截',treeId, treeNode, newName, isCancel)
+      return newName.length > 5;
+    },
+    addHoverDom(treeid, treeNode) {
+      var that = this
+      const item = document.getElementById(`${treeNode.tId}_a`);
+      if(item && !item.querySelector('.tree_extra_btn')){
+        const btn = document.createElement('sapn');
+        btn.classList.add('button', 'add', 'tree_extra_btn');
+        btn.id = `${treeid}_${treeNode.id}_btn`;
+        btn.title = `添加`;
+        
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation()
+          // this.clickRemove(treeNode)
+          console.log('添加前拦截','pid:'+treeNode.id)
+          this.ztreeObj.addNodes(treeNode, {id:(100 + that.newCount), pId:treeNode.id, name:"添加新节点" + (that.newCount++)});
+          return false;
+        })
+
+        item.appendChild(btn);
+      }
+    },
+    removeHoverDom(treeid, treeNode) {
+      const item = document.getElementById(`${treeNode.tId}_a`);
+      if(item){
+        const btn = item.querySelector('.tree_extra_btn');
+        if(btn){
+          item.removeChild(btn)
+        }
+      }
+    },
+    clickRemove(treeNode) {
+      console.log('remove', treeNode)
+      this.ztreeObj && this.ztreeObj.removeNode(treeNode)
+    },
+    onClick: function(evt, treeId, treeNode) {
+      // 点击事件
+      console.log(evt.type, treeNode);
+    },
+    onCheck: function(evt, treeId, treeNode) {
+      // 选中事件
+      console.log(evt.type, treeNode);
+    },
+    handleCreated: function(ztreeObj) {
+      this.ztreeObj = ztreeObj;
+      // onCreated 中操作ztreeObj对象展开第一个节点
+      ztreeObj.expandNode(ztreeObj.getNodes()[0], true);
+    },
+
+  },
+};
+</script>
+
+
+
+<style>
+
+/* 自定义美化 ztre添加、编辑、删除 按钮样式 */
+.ztree a:not(.curSelectedNode_Edit) .tree_extra_btn{
+    line-height: 0;
+    margin: 0;
+    padding: 0;
+    width: 21px;
+    height: 21px;
+    display: inline-block;
+    vertical-align: middle;
+    border: 0 none;
+    cursor: pointer;
+    outline: none;
+    background-color: transparent;
+    background-repeat: no-repeat;
+    background-attachment: scroll;
+    background-image: url('/static/images/metro.png');
+
+    margin-left: 2px;
+    margin-right: -1px;
+    background-position: -189px 0px;
+    vertical-align: top;
+}
+
+.ztree a .button.add {
+    /* margin-left: 2px;
+    margin-right: -1px;
+    background-position: -189px 0px;
+    vertical-align: top; */
+}
+.ztree a .button.edit {
+    margin-left: 2px;
+    margin-right: -1px;
+    background-position: -189px -21px;
+    vertical-align: top;
+}
+.ztree a .button.remove {
+    margin-left: 2px;
+    margin-right: -1px;
+    background-position: -189px -42px;
+    vertical-align: top;
+}
+
+.ztree li a span.button {
+    line-height: 0;
+    margin: 0;
+    padding: 0;
+    width: 21px;
+    height: 21px;
+    display: inline-block;
+    vertical-align: middle;
+    border: 0 none;
+    cursor: pointer;
+    outline: none;
+    background-color: transparent;
+    background-repeat: no-repeat;
+    background-attachment: scroll;
+    background-image: url('/static/images/metro.png');
+}
+</style>
+```
 ## License
 
-MIT
-
-Copyright (c) 2019-present, [前端路上](http://refined-x.com)
