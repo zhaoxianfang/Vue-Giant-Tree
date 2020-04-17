@@ -126,8 +126,6 @@ npm run serve
             <a-col :span="8">
                   <tree :nodes="treeNodes"
                       :setting="setting"
-                      @onClick="onClick"
-                      @onCheck="onCheck"
                       @onCreated="handleCreated"
                    />
             </a-col>
@@ -192,7 +190,9 @@ export default {
         },
         callback:{
           beforeRemove: this.zTreeBeforeRemove,
-          beforeRename: this.zTreeBeforeRename
+          beforeRename: this.zTreeBeforeRename,
+          onClick: this.onClick,
+          onCheck: this.onCheck
         }
       },
     };
